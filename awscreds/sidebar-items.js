@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["AwsCredsError",""],["Credentials","AWS access credentials: access key, secret key, and optional token."]],"type":[["Result",""]]});
