@@ -30,17 +30,7 @@ pub type Headers = HashMap<String, String>;
 /// format.
 pub type Query = HashMap<String, String>;
 
-static CLIENT: Lazy<Client> = Lazy::new(|| {
-    if cfg!(feature = "no-verify-ssl") {
-        Client::builder()
-            .danger_accept_invalid_certs(true)
-            .danger_accept_invalid_hostnames(true)
-            .build()
-            .expect("Could not build dangerous client!")
-    } else {
-        Client::new()
-    }
-});
+static CLIENT: Lazy<Client> = Lazy::new(|| Client::new());
 
 // Temporary structure for making a request
 pub struct Request<'a> {
@@ -66,10 +56,14 @@ impl<'a> Request<'a> {
         let expiry = match self.command {
             Command::PresignGet { expiry_secs } => expiry_secs,
             Command::PresignPut { expiry_secs } => expiry_secs,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
         let authorization = self.presigned_authorization()?;
-        Ok(format!("{}&X-Amz-Signature={}", self.presigned_url_no_sig(expiry)?, authorization))
+        Ok(format!(
+            "{}&X-Amz-Signature={}",
+            self.presigned_url_no_sig(expiry)?,
+            authorization
+        ))
     }
 
     fn host_header(&self) -> Result<HeaderValue> {
@@ -197,7 +191,7 @@ impl<'a> Request<'a> {
         let expiry = match self.command {
             Command::PresignGet { expiry_secs } => expiry_secs,
             Command::PresignPut { expiry_secs } => expiry_secs,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
         let canonical_request = signing::canonical_request(
             self.command.http_verb().as_str(),
